@@ -6,25 +6,21 @@ import { JSONParser } from "../util/jsonParser";
 import { noop } from "../util/noop";
 import { Util } from "../util/Util";
 
-export async function search(query: string, amount: number = 1): Promise<YoutubeSearchResults> {
-    const params = new URLSearchParams()
-    
-    params.append("search_query", query)
-    params.append("sp", "EgIQAQ%3D%3D")
-    params.append("pbj", "1")
+export async function search(query: string, options: { limit?: number } = {}): Promise<YoutubeSearchResults> {
+    const params = new URLSearchParams();
 
-    if (amount > 1) {
-        params.append("pbjreload", "1")
-    } else {
-        params.append("pbjreload", `${amount}`)
+    params.append("search_query", query);
+    params.append("hl", "en");
+
+    if (options.limit) {
+        params.append("sp", "CAISAhAB");
+        params.append("pbj", "1");
     }
 
-    params.append("hl", "en")
-
-    const request = await axios.get<string>(`${Util.getYTSearchURL()}?${params}`).catch(noop)
+    const request = await axios.get<string>(`${Util.getYTSearchURL()}?${params}`).catch(noop);
 
     if (!request) {
-        throw new SearchError(ErrorCodes.SEARCH_FAILED)
+        throw new SearchError(ErrorCodes.SEARCH_FAILED);
     }
 
     try {
@@ -34,10 +30,10 @@ export async function search(query: string, amount: number = 1): Promise<Youtube
                 `var ytInitialData = `,
                 `;</script>`
             )
-        )
+        );
 
-        return new YoutubeSearchResults(json)
+        return new YoutubeSearchResults(json, options.limit);
     } catch (error: any) {
-        throw new SearchError(error.message)
+        throw new SearchError(error.message);
     }
 }
